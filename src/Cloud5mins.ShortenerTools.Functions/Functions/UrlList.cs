@@ -23,6 +23,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,9 +43,16 @@ namespace Cloud5mins.ShortenerTools.Functions
 
         [Function("UrlList")]
         public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/UrlList")] HttpRequestData req, ExecutionContext context)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/UrlList")] HttpRequestData req, ExecutionContext context,
+        ClaimsPrincipal principal)
         {
             _logger.LogInformation($"Starting UrlList...");
+
+            bool authenticated = principal?.IsInRole("authenticated") ?? false;
+            if (!authenticated)
+            {
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
+            }
 
             var result = new ListResponse();
             string userId = string.Empty;
