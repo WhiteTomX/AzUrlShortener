@@ -2,7 +2,9 @@ using Cloud5mins.ShortenerTools.Core.Domain;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,7 +26,8 @@ namespace Cloud5mins.ShortenerTools.Functions
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "{shortUrl}")]
             HttpRequestData req,
             string shortUrl,
-            ExecutionContext context)
+            ExecutionContext context,
+            ClaimsPrincipal principal)
         {
             string redirectUrl = "https://azure.com";
             shortUrl = shortUrl.ToLower();
@@ -53,8 +56,11 @@ namespace Cloud5mins.ShortenerTools.Functions
                 _logger.LogInformation("Bad Link, resorting to fallback.");
             }
 
-            var res = req.CreateResponse(HttpStatusCode.Redirect);
-            res.Headers.Add("Location", redirectUrl);
+            var res = req.CreateResponse(HttpStatusCode.OK);
+            await res.WriteAsJsonAsync(principal.Claims.Select(c => new { c.Type, c.Value }));
+
+            // var res = req.CreateResponse(HttpStatusCode.Redirect);
+            // res.Headers.Add("Location", redirectUrl);
             return res;
 
         }
