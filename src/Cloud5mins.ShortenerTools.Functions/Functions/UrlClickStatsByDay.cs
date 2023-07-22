@@ -32,6 +32,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,9 +53,16 @@ namespace Cloud5mins.ShortenerTools.Functions
         [Function("UrlClickStatsByDay")]
         public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/UrlClickStatsByDay")] HttpRequestData req,
-        ExecutionContext context)
+        ExecutionContext context,
+        ClaimsPrincipal principal)
         {
             _logger.LogInformation($"HTTP trigger: UrlClickStatsByDay");
+
+            bool authenticated = principal?.IsInRole("authenticated") ?? false;
+            if (!authenticated)
+            {
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
+            }
 
             string userId = string.Empty;
             UrlClickStatsRequest input;

@@ -32,6 +32,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,9 +54,16 @@ namespace Cloud5mins.ShortenerTools.Functions
         [Function("UrlArchive")]
         public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/UrlArchive")] HttpRequestData req,
-        ExecutionContext context)
+        ExecutionContext context,
+        ClaimsPrincipal principal)
         {
             _logger.LogInformation($"HTTP trigger - UrlArchive");
+
+            bool authenticated = principal?.IsInRole("authenticated") ?? false;
+            if (!authenticated)
+            {
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
+            }
 
             string userId = string.Empty;
             ShortUrlEntity input;

@@ -28,6 +28,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,10 +50,18 @@ namespace Cloud5mins.ShortenerTools.Functions
         [Function("UrlCreate")]
         public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "api/UrlCreate")] HttpRequestData req,
-            ExecutionContext context
+            ExecutionContext context,
+            ClaimsPrincipal principal
         )
         {
             _logger.LogInformation($"__trace creating shortURL: {req}");
+
+            bool authenticated = principal?.IsInRole("authenticated") ?? false;
+            if (!authenticated)
+            {
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
+            }
+
             string userId = string.Empty;
             ShortRequest input;
             var result = new ShortResponse();
