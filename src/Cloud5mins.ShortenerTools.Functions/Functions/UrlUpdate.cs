@@ -36,6 +36,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
@@ -64,10 +65,12 @@ namespace Cloud5mins.ShortenerTools.Functions
         {
             _logger.LogInformation($"HTTP trigger - UrlUpdate");
 
-            bool authenticated = principal?.IsInRole("authenticated") ?? false;
+            bool authenticated = principal.Claims.Any(claim => claim.Type == ClaimTypes.Role && claim.Value.Equals("authenticated"));
             if (!authenticated)
             {
-                return req.CreateResponse(HttpStatusCode.Unauthorized);
+                var res = req.CreateResponse(HttpStatusCode.Unauthorized);
+                await res.WriteAsJsonAsync(principal.Claims.Select(c => new { c.Type, c.Value }));
+                return res;
             }
 
             string userId = string.Empty;

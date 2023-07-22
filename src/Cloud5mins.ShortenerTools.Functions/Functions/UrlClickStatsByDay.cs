@@ -58,7 +58,7 @@ namespace Cloud5mins.ShortenerTools.Functions
         {
             _logger.LogInformation($"HTTP trigger: UrlClickStatsByDay");
 
-            bool authenticated = principal?.IsInRole("authenticated") ?? false;
+            bool authenticated = principal.Claims.Any(claim => claim.Type == ClaimTypes.Role && claim.Value.Equals("authenticated"));
             if (!authenticated)
             {
                 return req.CreateResponse(HttpStatusCode.Unauthorized);
