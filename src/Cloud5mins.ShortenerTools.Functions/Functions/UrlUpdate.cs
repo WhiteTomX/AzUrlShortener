@@ -59,18 +59,14 @@ namespace Cloud5mins.ShortenerTools.Functions
         [Function("UrlUpdate")]
         public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/UrlUpdate")] HttpRequestData req,
-                ExecutionContext context,
-                ClaimsPrincipal principal
+                ExecutionContext context
             )
         {
             _logger.LogInformation($"HTTP trigger - UrlUpdate");
 
-            bool authenticated = principal.Claims.Any(claim => claim.Type == ClaimTypes.Role && claim.Value.Equals("authenticated"));
-            if (!authenticated)
+            if (!Utility.IsAdmin(req))
             {
-                var res = req.CreateResponse(HttpStatusCode.Unauthorized);
-                await res.WriteAsJsonAsync(principal.Claims.Select(c => new { c.Type, c.Value }));
-                return res;
+                return req.CreateResponse(HttpStatusCode.Unauthorized);
             }
 
             string userId = string.Empty;
