@@ -23,7 +23,7 @@ namespace Cloud5mins.ShortenerTools.Functions
 
         [Function("UrlRedirectRoot")]
         public async Task<HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "/")]
             HttpRequestData req,
             ExecutionContext context)
         {
