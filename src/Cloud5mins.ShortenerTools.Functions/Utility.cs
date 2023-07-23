@@ -80,12 +80,19 @@ namespace Cloud5mins.ShortenerTools
         {
             var principal = new ClientPrincipal();
 
-            var data = request.Headers.GetValues("x-ms-client-principal").First();
-            var decoded = Convert.FromBase64String(data);
-            var json = Encoding.UTF8.GetString(decoded);
-            principal = JsonSerializer.Deserialize<ClientPrincipal>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (request.Headers.TryGetValues("x-ms-client-principal", out var header))
+            {
+                var decoded = Convert.FromBase64String(header.First());
+                var json = Encoding.UTF8.GetString(decoded);
+                principal = JsonSerializer.Deserialize<ClientPrincipal>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            return principal.UserRoles.Any(role => role.Equals("admin"));
+                return principal.UserRoles.Any(role => role.Equals("admin"));
+            }
+            else
+            {
+                return false;
+            }
+
         }
     }
 }
