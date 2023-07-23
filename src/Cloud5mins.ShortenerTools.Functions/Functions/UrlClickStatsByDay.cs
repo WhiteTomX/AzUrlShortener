@@ -53,13 +53,11 @@ namespace Cloud5mins.ShortenerTools.Functions
         [Function("UrlClickStatsByDay")]
         public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/UrlClickStatsByDay")] HttpRequestData req,
-        ExecutionContext context,
-        ClaimsPrincipal principal)
+        ExecutionContext context)
         {
             _logger.LogInformation($"HTTP trigger: UrlClickStatsByDay");
 
-            bool authenticated = principal.Claims.Any(claim => claim.Type == ClaimTypes.Role && claim.Value.Equals("authenticated"));
-            if (!authenticated)
+            if (!Utility.IsAdmin(req))
             {
                 return req.CreateResponse(HttpStatusCode.Unauthorized);
             }

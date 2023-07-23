@@ -43,13 +43,11 @@ namespace Cloud5mins.ShortenerTools.Functions
 
         [Function("UrlList")]
         public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/UrlList")] HttpRequestData req, ExecutionContext context,
-        ClaimsPrincipal principal)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/UrlList")] HttpRequestData req, ExecutionContext context)
         {
             _logger.LogInformation($"Starting UrlList...");
 
-            bool authenticated = principal.Claims.Any(claim => claim.Type == ClaimTypes.Role && claim.Value.Equals("authenticated"));
-            if (!authenticated)
+            if (!Utility.IsAdmin(req))
             {
                 return req.CreateResponse(HttpStatusCode.Unauthorized);
             }

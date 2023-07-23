@@ -51,14 +51,11 @@ namespace Cloud5mins.ShortenerTools.Functions
         [Function("UrlCreate")]
         public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "api/UrlCreate")] HttpRequestData req,
-            ExecutionContext context,
-            ClaimsPrincipal principal
-        )
+            ExecutionContext context)
         {
             _logger.LogInformation($"__trace creating shortURL: {req}");
 
-            bool authenticated = principal.Claims.Any(claim => claim.Type == ClaimTypes.Role && claim.Value.Equals("authenticated"));
-            if (!authenticated)
+            if (!Utility.IsAdmin(req))
             {
                 return req.CreateResponse(HttpStatusCode.Unauthorized);
             }

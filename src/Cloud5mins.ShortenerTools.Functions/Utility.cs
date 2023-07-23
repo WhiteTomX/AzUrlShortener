@@ -8,8 +8,8 @@ using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-
-
+using System.Text;
+using System.Text.Json;
 
 namespace Cloud5mins.ShortenerTools
 {
@@ -66,6 +66,26 @@ namespace Cloud5mins.ShortenerTools
                 var reversedToken = string.Join(string.Empty, token.Reverse());
                 return uniqueId + reversedToken;
             }
+        }
+
+        private class ClientPrincipal
+        {
+            public string IdentityProvider { get; set; }
+            public string UserId { get; set; }
+            public string UserDetails { get; set; }
+            public IEnumerable<string> UserRoles { get; set; }
+        }
+
+        public static bool IsAdmin(HttpRequestData request)
+        {
+            var principal = new ClientPrincipal();
+
+            var data = request.Headers.GetValues("x-ms-client-principal").First();
+            var decoded = Convert.FromBase64String(data);
+            var json = Encoding.UTF8.GetString(decoded);
+            principal = JsonSerializer.Deserialize<ClientPrincipal>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            return principal.UserRoles.Any(role => role.Equals("admin"));
         }
     }
 }
